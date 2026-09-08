@@ -99,7 +99,9 @@ class MassEditingWizard(models.TransientModel):
             )
             dynamic_fields[line.field_id.name] = fields.Text([()], default=False)
 
-        self._fields.update(dynamic_fields)
+        # Odoo >= 19: `_fields` is a read-only MappingProxyType view over the
+        # real mutable dict `_fields__`. We must mutate `_fields__` directly.
+        self._fields__.update(dynamic_fields)
 
         res = super().onchange(values, field_names, fields_spec)
         if not res["value"]:
@@ -107,7 +109,7 @@ class MassEditingWizard(models.TransientModel):
             res["value"] = value
 
         for field in dynamic_fields:
-            self._fields.pop(field)
+            self._fields__.pop(field)
 
         view_temp = (
             self.env["ir.ui.view"]
